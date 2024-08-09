@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Form, Container, Row, Col, Alert } from 'react-bootstrap';
 import axios from 'axios';
-import Possession from './patrimoine_economique/models/possessions/Possession'; // Assurez-vous que le chemin d'importation est correct
+import Possession from './patrimoine_economique/models/possessions/Possession'; 
 
 const PatrimoineTable = () => {
   const [data, setData] = useState(null);
@@ -35,13 +35,21 @@ const PatrimoineTable = () => {
     const dateActuelle = new Date(selectedDate);
     let total = 0;
 
-    data.possessions.forEach(item => {
+    const updatedPossessions = data.possessions.map(item => {
+      return {
+        ...item,
+        dateFin: selectedDate // Met à jour la date de fin avec la date sélectionnée
+      };
+    });
+
+    // Recalculer la valeur totale
+    updatedPossessions.forEach(item => {
       const possession = new Possession(
         item.possesseur,
         item.libelle,
         item.valeur,
         new Date(item.dateDebut),
-        item.dateFin ? new Date(item.dateFin) : null,
+        new Date(item.dateFin),
         item.tauxAmortissement
       );
 
@@ -49,6 +57,8 @@ const PatrimoineTable = () => {
     });
 
     setTotalValue(total);
+    // Optionnel : Mettre à jour les données sur le serveur ou dans l'état si nécessaire
+    setData({ ...data, possessions: updatedPossessions });
   };
 
   if (!data) {
@@ -57,8 +67,8 @@ const PatrimoineTable = () => {
 
   return (
     <Container>
-      <Row className="mb-4">
-        <Col md={8}>
+      <Row className="mb-5">
+        <Col md={9} className="pe-5">
           <Table striped bordered hover>
             <thead>
               <tr>
@@ -86,8 +96,8 @@ const PatrimoineTable = () => {
             </tbody>
           </Table>
         </Col>
-        <Col md={4} className="d-flex flex-column justify-content-center align-items-center">
-          <Form>
+        <Col md={4} className="d-flex flex-column align-items-start ps-10">
+          <Form className="mb-4">
             <Form.Group controlId="formDate" className="mb-3">
               <Form.Label>Sélectionner une date</Form.Label>
               <Form.Control
@@ -101,7 +111,7 @@ const PatrimoineTable = () => {
             </Button>
           </Form>
           {totalValue !== null && (
-            <Alert variant="info" className="mt-5" style={{ marginLeft: '20px' }}>
+            <Alert variant="info" className="mt-4">
               Valeur totale après amortissement : {totalValue.toFixed(2)}
             </Alert>
           )}
